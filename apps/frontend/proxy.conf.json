@@ -1,0 +1,10 @@
+{
+  "/api": {
+    "target": "http://0.0.0.0:42411",
+    "secure": false
+  },
+  "/uploads": {
+    "target": "http://0.0.0.0:42411",
+    "secure": false
+  }
+}

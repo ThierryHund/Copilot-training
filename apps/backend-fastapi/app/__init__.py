@@ -1,0 +1,1 @@
+"""Photo Gallery FastAPI backend."""

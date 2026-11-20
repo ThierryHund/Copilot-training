@@ -1,0 +1,27 @@
+# Binaries
+/bin/
+/tmp/
+server
+backend-gin
+
+# Go workspace / cache
+vendor/
+go.sum
+
+# Local data
+uploads/
+db/
+*.sqlite
+*.db
+
+# Swagger generated docs
+docs/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Env
+.env
+.env.local

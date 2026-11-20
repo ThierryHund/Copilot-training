@@ -1,0 +1,40 @@
+server:
+  port: ${SPRING_BACKEND_PORT:42621}
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: backend-spring
+  datasource:
+    url: jdbc:sqlite:./data/photogallery.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+        # Keep schema operations quiet and consistent with SQLite semantics.
+        hbm2ddl:
+          auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+# Photo Gallery specific configuration
+photogallery:
+  # Directory on disk where uploaded files are stored and served from.
+  uploads-dir: ./uploads
+
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs
+  swagger-ui:
+    path: /api/docs
+
+logging:
+  level:
+    org.hibernate.SQL: INFO

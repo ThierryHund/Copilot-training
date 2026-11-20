@@ -1,0 +1,29 @@
+# Build output
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Maven wrapper JAR — regenerate with `mvn -N wrapper:wrapper` if missing
+.mvn/wrapper/maven-wrapper.jar
+
+# Runtime data
+data/*
+!data/.gitkeep
+uploads/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

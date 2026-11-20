@@ -1,0 +1,202 @@
+openapi: 3.1.0
+info:
+  title: Photo Gallery API
+  description: |
+    Canonical HTTP API contract for the Photo Gallery backend.
+    All alternative backend implementations (Spring Boot, FastAPI, .NET, Gin)
+    must conform to this contract so the Angular frontend works unchanged.
+
+    Regenerate from the NestJS reference implementation with:
+      npm run openapi:export
+  version: 1.0.0
+servers:
+  - url: http://localhost:42621
+    description: Local dev server (all four backends bind this port)
+tags:
+  - name: photos
+    description: Photo upload, retrieval, and management
+paths:
+  /api/photos/upload:
+    post:
+      operationId: uploadPhoto
+      tags: [photos]
+      summary: Upload a new photo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadPhotoDto'
+      responses:
+        '201':
+          description: Photo uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        '400':
+          description: File too large, missing, or unsupported type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/photos:
+    get:
+      operationId: getPhotos
+      tags: [photos]
+      summary: List all photos (ordered by createdAt descending)
+      responses:
+        '200':
+          description: Photos retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+  /api/photos/{id}:
+    get:
+      operationId: getPhotoById
+      tags: [photos]
+      summary: Get a photo by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: '1'
+      responses:
+        '200':
+          description: |
+            Photo retrieved. Returns JSON `null` body when the ID does not
+            exist (not a 404) — this matches the NestJS reference behavior
+            and is load-bearing for the frontend.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Photo'
+                  - type: 'null'
+    delete:
+      operationId: deletePhoto
+      tags: [photos]
+      summary: Delete a photo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: '1'
+      responses:
+        '200':
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+  /api/photos/{id}/thumbnail:
+    post:
+      operationId: generateThumbnail
+      tags: [photos]
+      summary: Generate a thumbnail URL for a photo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: '1'
+        - name: width
+          in: query
+          required: false
+          schema: { type: integer, default: 150 }
+        - name: height
+          in: query
+          required: false
+          schema: { type: integer, default: 150 }
+      responses:
+        '201':
+          description: Thumbnail URL (plain JSON string, no wrapper object)
+          content:
+            application/json:
+              schema:
+                type: string
+                example: /uploads/1700000000000-123.jpg?w=150&h=150
+        '500':
+          description: |
+            Photo not found. The reference NestJS implementation raises a
+            generic Error here (500 response, no 404). All alt backends match
+            this behavior for parity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+components:
+  schemas:
+    Photo:
+      type: object
+      required: [id, filename, storedFilename, url, size, tags, createdAt]
+      properties:
+        id:
+          type: string
+          example: '1'
+          description: Photo identifier (STRING, not number — matches NestJS output)
+        filename:
+          type: string
+          example: holiday.jpg
+          description: Original filename for display
+        storedFilename:
+          type: string
+          example: 1700000000000-123456789.jpg
+          description: Unique filename on disk
+        url:
+          type: string
+          example: /uploads/1700000000000-123456789.jpg
+          description: URL to serve the file (relative to host)
+        size:
+          type: integer
+          format: int64
+          example: 245678
+          description: File size in bytes
+        tags:
+          type: array
+          items: { type: string }
+          example: [vacation, beach]
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-04-17T12:00:00.000Z'
+          description: Creation timestamp (ISO 8601 UTC)
+    UploadPhotoDto:
+      type: object
+      description: multipart/form-data body for POST /api/photos/upload
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Image file (JPEG, PNG, GIF, or WebP; max 5 MB)
+        tags:
+          type: string
+          description: Comma-separated list of tags
+          example: vacation,beach,sunset
+    ErrorEnvelope:
+      type: object
+      description: |
+        Standard error response shape. Every backend — NestJS, Spring Boot,
+        FastAPI, .NET, Gin — maps framework exceptions to this envelope.
+      required: [statusCode, message, error]
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: File size exceeds 5MB limit
+        error:
+          type: string
+          example: Bad Request
